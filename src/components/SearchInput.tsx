@@ -4,7 +4,15 @@ import styled from '@emotion/styled';
 import {tokenize, Token} from '../lib';
 
 const Input = styled.input(() => ({
-  fontSize: '14px',
+  fontSize: '16px',
+  position: 'absolute',
+  color: 'transparent',
+  backgroundColor: 'transparent',
+  caretColor: 'black',
+  flex: 1,
+  border: 'none',
+  outline: 'none',
+  padding: 'unset',
 }));
 
 const ValueToken = styled.div(() => ({
@@ -22,12 +30,8 @@ export const SearchInput = ({}) => {
 
   const tokens = React.useMemo(() => tokenize(internalValue), [internalValue]);
 
-  const renderGap = (value: string) => {
-    return (
-      <div>
-        {value}
-      </div>
-    );
+  const renderGap = (i: number) => {
+    return Array(i).fill(<div>&nbsp;</div>);
   }
 
   const renderValue = (value: string) => {
@@ -41,32 +45,42 @@ export const SearchInput = ({}) => {
   const renderTokens = (tokens: Token[], internalValue: string) => {
     const output: JSX.Element[] = [];
     for (let i = 0; i < tokens.length; i += 1) {
-      if (i + 1 < tokens.length && tokens[i].end !== tokens[i + 1].start) {
-        output.push(renderGap(internalValue.slice(tokens[i].end + 1, tokens[i + 1].start)));
-      }
       if (tokens[i].type === 'value') {
         output.push(renderValue(tokens[i].value));
       } else if (tokens[i].type === 'operation') {
         output.push(renderOperator(tokens[i].value));
       } else {
-        output.push(renderGap(tokens[i].value));
+        output.push(<div>{tokens[i].value}</div>);
       }
-      console.log(output);
+      if (i + 1 < tokens.length && tokens[i].end !== tokens[i + 1].start) {
+        output.push(...renderGap(tokens[i + 1].start - tokens[i].end));
+      }
     }
     return output;
   }
 
 
   return (
-    <div>
+    <div
+      style={{
+        position: 'relative',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          position: 'absolute',
+          fontFamily: 'Arial',
+          fontSize: '16px',
+        }}
+      >
+        {renderTokens(tokens, internalValue)}
+      </div>
       <Input
         type='text'
         value={internalValue}
         onChange={(evt) => setInternalValue(evt.target.value)}
       />
-      <div>
-        {renderTokens(tokens, internalValue)}
-      </div>
     </div>
   )
 }
